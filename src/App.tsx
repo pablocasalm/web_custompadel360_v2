@@ -1,48 +1,65 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import { getContent } from './lib/storage';
-import { defaultCMSContent, GlobalContent } from './lib/types';
-import Inicio from './routes/index';
-import Custom from './routes/custom';
-import Rebote from './routes/rebote';
+
+// Rutas
+import Home from './routes/home';
+import Custom from './routes/pistas';
+import Pelotas from './routes/pelotas/index';
 import Tienda from './routes/tienda';
-import Admin from './routes/admin';
+import AdminLogin from './routes/admin/login';
+import AdminDashboard from './routes/admin/dashboard';
+
+// Componentes
 import NoticeBar from './components/NoticeBar';
 import CTASticky from './components/CTASticky';
 import SEO from './components/SEO';
 
-function getInitialTheme(): "dark" | "light" {
-  const saved = localStorage.getItem("theme");
-  if (saved === "dark" || saved === "light") return saved;
-  const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-  return prefersDark ? "dark" : "light";
+/* -----------------------------
+   Tipos y seed mínimos (global)
+------------------------------ */
+type GlobalContent = { aviso: { texto: string; visible: boolean } };
+const DEFAULT_GLOBAL: GlobalContent = { aviso: { texto: '', visible: false } };
+
+function getInitialTheme(): 'dark' | 'light' {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark' || saved === 'light') return saved;
+  const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+  return prefersDark ? 'dark' : 'light';
 }
 
 export default function App() {
-  const globalContent = getContent<GlobalContent>('cms_global', defaultCMSContent.global);
-  const [theme, setTheme] = useState<"dark" | "light">(getInitialTheme());
+  const globalContent =
+    getContent<GlobalContent>('cms_global') ?? DEFAULT_GLOBAL;
+
+  const [theme, setTheme] = useState<'dark' | 'light'>(getInitialTheme());
 
   useEffect(() => {
-    const onScroll = () => document.body.classList.toggle('scrolled', window.scrollY > 4);
+    const onScroll = () =>
+      document.body.classList.toggle('scrolled', window.scrollY > 4);
     onScroll();
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
   }, [theme]);
 
   const navPillClass = ({ isActive }: { isActive: boolean }) =>
     ['nav-pill', isActive ? 'nav-pill--active' : 'nav-pill--outline'].join(' ');
 
-  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+  const toggleTheme = () =>
+    setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
 
   return (
     <div className="app-wrapper">
       <SEO />
-      <NoticeBar text={globalContent.aviso.texto} visible={globalContent.aviso.visible} />
+      <NoticeBar
+        text={globalContent.aviso.texto}
+        visible={globalContent.aviso.visible}
+      />
 
       <header className="site-header">
         <div className="container header-bar">
@@ -60,7 +77,7 @@ export default function App() {
             <NavLink to="/custom" className={navPillClass}>
               CUSTOM 360
             </NavLink>
-            <NavLink to="/rebote" className={navPillClass}>
+            <NavLink to="/pelotas" className={navPillClass}>
               REBOTE
             </NavLink>
             <NavLink to="/tienda" className={navPillClass}>
@@ -70,12 +87,12 @@ export default function App() {
               className="theme-toggle"
               type="button"
               onClick={toggleTheme}
-              aria-pressed={theme === "dark"}
-              aria-label={theme === "dark" ? "Cambiar a modo día" : "Cambiar a modo noche"}
-              title={theme === "dark" ? "Modo día" : "Modo noche"}
+              aria-pressed={theme === 'dark'}
+              aria-label={theme === 'dark' ? 'Cambiar a modo día' : 'Cambiar a modo noche'}
+              title={theme === 'dark' ? 'Modo día' : 'Modo noche'}
             >
               <span className="theme-toggle__icon" aria-hidden="true" />
-              {theme === "dark" ? "Noche" : "Día"}
+              {theme === 'dark' ? 'Noche' : 'Día'}
             </button>
           </nav>
         </div>
@@ -83,11 +100,12 @@ export default function App() {
 
       <main>
         <Routes>
-          <Route path="/" element={<Inicio />} />
+          <Route path="/" element={<Home />} />
           <Route path="/custom" element={<Custom />} />
-          <Route path="/rebote" element={<Rebote />} />
+          <Route path="/pelotas" element={<Pelotas />} />
           <Route path="/tienda" element={<Tienda />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

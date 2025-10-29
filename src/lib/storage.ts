@@ -1,46 +1,56 @@
-export function getContent<T>(key: string, fallback: T): T {
-  try {
-    const stored = localStorage.getItem(key);
-    if (stored) {
-      return JSON.parse(stored) as T;
-    }
-  } catch (error) {
-    console.error(`Error reading ${key}:`, error);
-  }
-  return fallback;
-}
+// src/lib/storage.ts
+const NAMESPACE = 'cp360';
 
-export function setContent<T>(key: string, value: T): void {
+export function getContent<T = unknown>(key: string): T | null {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.error(`Error saving ${key}:`, error);
+    const raw = localStorage.getItem(`${NAMESPACE}:${key}`);
+    if (!raw) return null;
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
   }
 }
 
-export function exportToFile(data: unknown, filename: string): void {
-  const json = JSON.stringify(data, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+export function setContent(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(`${NAMESPACE}:${key}`, JSON.stringify(value));
+  } catch {
+    // noop
+  }
 }
 
-export async function importFromFile(file: File): Promise<unknown> {
+/** Descarga un objeto como JSON (para backups del CMS local) */
+export function exportToFile(filename: string, data: unknown): void {
+  try {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: 'application/json;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename.endsWith('.json') ? filename : `${filename}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch {
+    // noop
+  }
+}
+
+/** Lee un .json desde un <input type="file"> y devuelve su contenido parseado */
+export function importFromFile(file: File): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
       try {
-        const data = JSON.parse(e.target?.result as string);
-        resolve(data);
-      } catch (error) {
-        reject(error);
+        const obj = JSON.parse(String(reader.result));
+        resolve(obj);
+      } catch (e) {
+        reject(e);
       }
     };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsText(file);
+    reader.readAsText(file, 'utf-8');
   });
 }

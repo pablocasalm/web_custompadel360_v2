@@ -1,44 +1,61 @@
 export type Product = {
   id: string;
   nombre: string;
-  categoria: "Pistas" | "Pelotas" | "Accesorios";
-  precio: number;
-  etiquetas: string[];
   descripcion: string;
-  imagen?: string;
+  categoria: "Pistas" | "Pelotas" | "Accesorios";
+  etiquetas: Array<"eco" | "pro" | "club">;
+  precio: number;
+  img?: string;
+  url?: string;
 };
 
 export const PRODUCTS: Product[] = [
   {
-    id: "pista-pro",
+    id: "pista-panoramica-pro",
     nombre: "Pista Panorámica PRO",
+    descripcion: "Estructura panorámica, vidrio 12 mm, césped profesional y LED.",
     categoria: "Pistas",
-    precio: 18900,
-    etiquetas: ["pro"],
-    descripcion: "Estructura panorámica, vidrio 12mm, césped profesional."
+    etiquetas: ["pro", "club"],
+    precio: 28900,
   },
   {
-    id: "pista-club",
-    nombre: "Pista Club",
+    id: "pista-clasica-club",
+    nombre: "Pista Clásica Club",
+    descripcion: "Solución robusta y optimizada para clubs con alto uso.",
     categoria: "Pistas",
-    precio: 14900,
     etiquetas: ["club"],
-    descripcion: "Estructura clásica, vidrio 10mm, mantenimiento incluido."
+    precio: 21900,
   },
   {
-    id: "pelotas-rebote",
-    nombre: "Servicio REBOTE x 1000 pelotas",
+    id: "pelotas-eco-pack",
+    nombre: "Pack Pelotas ECO (24 tubos)",
+    descripcion: "Pelotas recicladas con rendimiento consistente.",
     categoria: "Pelotas",
-    precio: 650,
-    etiquetas: ["eco"],
-    descripcion: "Re-presurización y reciclaje. Recogida y entrega."
+    etiquetas: ["eco", "club"],
+    precio: 168,
   },
   {
-    id: "pack-welcome",
-    nombre: "Welcome pack club",
+    id: "rebote-servicio",
+    nombre: "Servicio REBOTE (mensual)",
+    descripcion: "Re-presurización y reciclaje de pelotas con recogida programada.",
+    categoria: "Pelotas",
+    etiquetas: ["eco", "club"],
+    precio: 129,
+  },
+  {
+    id: "accesorio-red-pro",
+    nombre: "Red profesional reforzada",
+    descripcion: "Red de alta resistencia con cintas y tensores incluidos.",
     categoria: "Accesorios",
-    precio: 320,
-    etiquetas: ["club"],
-    descripcion: "Pack de bienvenida personalizable."
-  }
+    etiquetas: ["pro", "club"],
+    precio: 240,
+  },
+  {
+    id: "accesorio-foco-led",
+    nombre: "Foco LED 200W",
+    descripcion: "Iluminación eficiente para pistas exteriores.",
+    categoria: "Accesorios",
+    etiquetas: ["eco"],
+    precio: 189,
+  },
 ];

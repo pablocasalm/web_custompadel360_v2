@@ -1,41 +1,40 @@
-const AUTH_KEY = 'padel_auth';
-const SESSION_KEY = 'padel_session';
+import { STORAGE_KEYS } from './constants';
 
-export async function sha256(text: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(text);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+/** Hash SHA-256 en hex */
+async function sha256Hex(text: string): Promise<string> {
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  const arr = Array.from(new Uint8Array(buf));
+  return arr.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export async function setPassword(password: string): Promise<void> {
-  const hash = await sha256(password);
-  localStorage.setItem(AUTH_KEY, hash);
+/** Establece/actualiza contraseña (guarda hash). Úsalo desde dashboard la primera vez. */
+export async function setPassword(plain: string): Promise<void> {
+  const hash = await sha256Hex(plain);
+  localStorage.setItem(STORAGE_KEYS.authHash, hash);
 }
 
-export async function login(_username: string, password: string): Promise<boolean> {
-  const storedHash = localStorage.getItem(AUTH_KEY);
+/** Comprueba login contra el hash guardado (si no hay hash, acepta la primera y lo establece) */
+export async function login(username: string, password: string): Promise<boolean> {
+  const savedHash = localStorage.getItem(STORAGE_KEYS.authHash);
+  const passHash = await sha256Hex(password);
 
-  if (!storedHash) {
-    await setPassword(password);
-    sessionStorage.setItem(SESSION_KEY, 'true');
-    return true;
+  if (!savedHash) {
+    // Primera configuración: guardamos esta contraseña
+    localStorage.setItem(STORAGE_KEYS.authHash, passHash);
+  } else if (savedHash !== passHash) {
+    return false;
   }
 
-  const hash = await sha256(password);
-  if (hash === storedHash) {
-    sessionStorage.setItem(SESSION_KEY, 'true');
-    return true;
-  }
-
-  return false;
+  // Sesión muy simple
+  localStorage.setItem(STORAGE_KEYS.authSession, JSON.stringify({ u: username, t: Date.now() }));
+  return true;
 }
 
 export function logout(): void {
-  sessionStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(STORAGE_KEYS.authSession);
 }
 
 export function isLoggedIn(): boolean {
-  return sessionStorage.getItem(SESSION_KEY) === 'true';
+  return !!localStorage.getItem(STORAGE_KEYS.authSession);
 }
